@@ -1,0 +1,12 @@
+---
+- name: "check if {{ item.name }} exists"
+  ansible.builtin.stat:
+    path: "{{ item.original_location }}"
+  register: item_to_backup
+
+- name: "create backup for {{ item.name }}"
+  when: item_to_backup.stat.exists
+  community.general.archive:
+    path: "{{ item.archive_path }}"
+    dest: "{{ item.archive_dest }}"
+    format: "tar"

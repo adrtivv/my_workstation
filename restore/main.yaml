@@ -1,0 +1,247 @@
+---
+- hosts: "localhost"
+  connection: "local"
+  vars_files:
+    - "../vars.yaml"
+  tasks:
+    - name: "set up dnf configuration"
+      become: true
+      ansible.builtin.lineinfile:
+        path: "/etc/dnf/dnf.conf"
+        regexp: '^{{ item.key }}='
+        line: "{{ item.key }}={{ item.value }}"
+      loop:
+        - { key: "max_parallel_downloads", value: 20 }
+        - { key: "deltarpm", value: true }
+
+    - name: "upgrade system packages"
+      become: true
+      ansible.builtin.dnf:
+        name: "*"
+        state: "latest"
+
+    - name: "install dnf-plugins-core(rpm fusion)"
+      become: true
+      ansible.builtin.dnf:
+        name: "dnf-plugins-core"
+        state: "latest"
+
+    - name: "enable the free/non-free rpm fusion repositories"
+      become: true
+      ansible.builtin.dnf:
+        name:
+          - "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-{{
+            ansible_distribution_major_version }}.noarch.rpm"
+          - "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-{{
+            ansible_distribution_major_version }}.noarch.rpm"
+        state: "latest"
+        disable_gpg_check: true
+
+    - name: "enable openh264 repository(rpm fusion)"
+      become: true
+      ansible.builtin.command: "dnf config-manager --enable fedora-cisco-openh264 -y"
+
+    - name: "install appstream-data(rpm fusion)"
+      become: true
+      ansible.builtin.command: "dnf groupupdate core -y"
+
+    - name: "switch to ffmpeg-free(rpm fusion)"
+      become: true
+      ansible.builtin.command: "dnf swap ffmpeg-free ffmpeg --allowerasing -y"
+
+    - name: "install media codecs(rpm fusion) #1"
+      become: true
+      ansible.builtin.command: "dnf groupupdate multimedia --setop=\"install_weak_deps=False\" --exclude=PackageKit-gstreamer-plugin -y"
+
+    - name: "install media codecs(rpm fusion) #2"
+      become: true
+      ansible.builtin.command: "dnf groupupdate sound-and-video -y"
+
+    - name: "enable third party repos"
+      become: true
+      ansible.builtin.yum_repository:
+        name: "{{ item.name }}"
+        description: "{{ item.description }}"
+        baseurl: "{{ item.baseurl }}"
+        enabled: "{{ item.enabled }}"
+        gpgcheck: "{{ item.gpgcheck }}"
+        gpgkey: "{{ item.gpgkey }}"
+      loop: "{{ third_party_repos }}"
+
+    - name: "enable copr repos"
+      become: true
+      community.general.copr:
+        name: "{{ item }}"
+        state: "enabled"
+      loop: "{{ copr_repos }}"
+
+    - name: "install system packages"
+      become: true
+      ansible.builtin.dnf:
+        name: "{{ item }}"
+        state: "latest"
+      loop: "{{ system_packages }}"
+
+    - name: "remove fedora flatpak repos"
+      community.general.flatpak_remote:
+        name:
+          - "fedora"
+          - "fedora-testing"
+        state: "absent"
+
+    - name: "set up flathub as flatpak remote repo"
+      community.general.flatpak_remote:
+        name: "flathub"
+        flatpakrepo_url: "https://dl.flathub.org/repo/flathub.flatpakrepo"
+        state: "present"
+        enabled: true
+
+    - name: "install flatpak packages"
+      community.general.flatpak:
+        name: "{{ item }}"
+        state: "present"
+      loop: "{{ flatpak_packages }}"
+
+    - name: "set up nvidia power config"
+      become: true
+      ansible.builtin.command: "systemctl enable nvidia-{suspend,resume,hibernate}"
+      ignore_errors: true
+
+    - name: "check if rust is already installed"
+      ansible.builtin.command: "command -v rustup"
+      register: rust_already_installed
+      ignore_errors: true
+
+    - name: "download rust automated installation script"
+      when: rust_already_installed.failed
+      ansible.builtin.get_url:
+        url: "https://sh.rustup.rs"
+        dest: "/tmp/rustup_init.sh"
+        mode: "u=rw,g=r,o=r"
+        force: true
+
+    - name: "install rust"
+      when: rust_already_installed.failed
+      ansible.builtin.command: "/tmp/sh.rustup.rs -y"
+    
+    - name: "check if pnpm is already installed"
+      ansible.builtin.command: "command -v pnpm"
+      register: pnpm_already_installed
+      ignore_errors: true
+
+    - name: "download pnpm automated installation script"
+      when: pnpm_already_installed.failed
+      ansible.builtin.get_url:
+        url: "https://get.pnpm.io/install.sh"
+        dest: "/tmp/pnpm_install.sh"
+        mode: "u=rw,g=r,o=r"
+        force: true
+
+    - name: "install pnpm"
+      when: pnpm_already_installed.failed
+      ansible.builtin.command: /tmp/pnpm_install.sh -y
+
+    - name: "check if node.js is already installed"
+      ansible.builtin.command: "command -v node"
+      register: nodejs_already_installed
+      ignore_errors: true
+
+    - name: "install latest lts version of node.js"
+      when: nodejs_already_installed.failed
+      ansible.builtin.command: "pnpm env use --global lts"
+
+    - name: "install global pnpm packages(required by helix)"
+      community.general.pnpm:
+        name: "{{ item }}"
+        global: true
+        state: "latest"
+      loop: "{{ pnpm_global_packages }}"
+
+    - name: "check if chezmoi is already installed"
+      ansible.builtin.command: "command -v chezmoi"
+      register: chezmoi_already_installed
+      ignore_errors: true
+
+    - name: "download chezmoi automated installation script"
+      when: chezmoi_already_installed.failed
+      ansible.builtin.get_url:
+        url: "https://get.chezmoi.io/lb"
+        dest: "/tmp/chezmoi_install.sh"
+        mode: "u=rw,g=r,o=r"
+        force: true
+
+    - name: "run chezmoi automated installation script"
+      when: chezmoi_already_installed.failed
+      ansible.builtin.command: "/tmp/chezmoi_install.sh"
+      args: 
+        chdir: "{{ ansible.env.HOME }}/"
+
+    - name: "check if jetbrains mono nerd font is already installed"
+      ansible.builtin.stat:
+        path: "{{ ansible.env.HOME }}/.local/share/fonts/JetBrainsMonoNerdFont-Regular.ttf"
+      register: jetbrainsmono_nerd_font_regular_file
+
+    - name: "install jetbrainsmono nerd font"
+      when: not jetbrainsmono_nerd_font_regular_file.stat.exists
+      ansible.builtin.unarchive:
+        src: "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip"
+        dest: "{{ ansible.env.HOME }}/.local/share/fonts/"
+        remote_src: true
+
+    - name: "build font cache"
+      when: not jetbrainsmono_nerd_font_regular_file.stat.exists
+      ansible.builtin.command: "fc-cache ~/.local/share/fonts"
+
+
+    - name: "check if goimports(golang imports formatter) is already installed"
+      ansible.builtin.command: "command -v goimports"
+      register: goimports_already_installed
+      ignore_errors: true
+      
+    - name: "install goimports(required by helix)"
+      ansible.builtin.command: "go install golang.org/x/tools/cmd/goimports@latest"
+      when: goimports_already_installed.failed
+
+    - name: "check if dlv(golang debugger) is already installed"
+      ansible.builtin.command: "command -v dlv"
+      register: dlv_already_installed
+      ignore_errors: true
+      
+    - name: "install dlv(required by helix)"
+      ansible.builtin.command: "go install github.com/go-delve/delve/cmd/dlv@latest"
+      when: dlv_already_installed.failed
+
+    - name: "check if gopls(golang lsp) is already installed"
+      ansible.builtin.command: "command -v gopls"
+      register: gopls_already_installed
+      ignore_errors: true
+      
+    - name: "install gopls(required by helix)"
+      ansible.builtin.command: "go install golang.org/x/tools/cmd/gopls@latest"
+      when: gopls_already_installed.failed
+
+    - name: "install marksman(markdown lsp, required by helix)"
+      ansible.builtin.get_url:
+        url: "https://github.com/artempyanykh/marksman/releases/latest/download/marksman-linux-x64"
+        dest: "{{ ansible.env.HOME }}/.local/bin/marksman"
+        mode: "u=rwx,g=rx,o=rx"
+
+    - name: "configure .python_history(xdg-ninja solution)"
+      ansible.builtin.copy: 
+        src: "{{ playbook_dir }}/pythonrc"
+        dest: "/etc/python/pythonrc"
+        mode: "u=rw,g=r,o=r"
+
+    - name: "restore backup archives"
+      include_tasks: "./restore_backup_archives.yaml"
+      loop: "{{ backup_archives }}"
+
+    - name: "wait for nvidia kmod module to be built"
+      ansible.builtin.command: "modinfo -F version nvidia"
+      register: nvidia_driver_version
+      until: nvidia_driver_version.stdout | regex_search('\\d+\\.\\d+\\.\\d+')
+      retries: 9999999
+      delay: 5
+    
+    - debug:
+        msg: "nvidia kmod module built, driver version: {{ nvidia_driver_version.stdout }}"

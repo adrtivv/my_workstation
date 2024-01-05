@@ -1,0 +1,17 @@
+---
+- hosts: "localhost"
+  connection: "local"
+  collections:
+    - "community.general"
+  vars_files:
+    - "../vars.yaml"
+  tasks:
+    - name: "make sure backup folder exists"
+      ansible.builtin.file:
+        path: "{{ ansible_env.HOME }}/my_workstation_backups"
+        state: "directory"
+        mode: "u=rwx,g=rx,o=rx"
+
+    - name: "create backup archives"
+      include_tasks: ./create_backup_archives.yaml
+      loop: "{{ backup_archives }}"

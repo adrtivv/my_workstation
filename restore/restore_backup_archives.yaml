@@ -1,0 +1,10 @@
+---
+- name: "remove {{ item.name }} if it exists"
+  ansible.builtin.file:
+    path: "{{ item.original_location }}"
+    state: "absent"
+
+- name: "restore {{ item.name }} from backup archives"
+  ansible.builtin.unarchive:
+    src: "{{ item.unarchive_src }}"
+    dest: "{{ item.unarchive_dest }}"
