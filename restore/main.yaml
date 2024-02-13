@@ -129,7 +129,7 @@
       register: rust_analyzer_already_installed
       ignore_errors: true
 
-    - name: "install rust-analyzer"
+    - name: "install rust-analyzer(required by helix)"
       when: rust_analyzer_already_installed.failed
       ansible.builtin.command: "rustup component add rust-analyzer"
     
