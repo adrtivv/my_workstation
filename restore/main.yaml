@@ -123,6 +123,15 @@
     - name: "install rust"
       when: rust_already_installed.failed
       ansible.builtin.command: "/tmp/sh.rustup.rs -y"
+
+    - name: "check if rust-analyzer is already installed"
+      ansible.builtin.command: "command -v rust-analyzer"
+      register: rust_analyzer_already_installed
+      ignore_errors: true
+
+    - name: "install rust-analyzer"
+      when: rust_analyzer_already_installed.failed
+      ansible.builtin.command: "rustup component add rust-analyzer"
     
     - name: "check if pnpm is already installed"
       ansible.builtin.command: "command -v pnpm"
