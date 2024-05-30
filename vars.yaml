@@ -30,7 +30,7 @@ backup_archives:
 
 copr_repos:
   - "atim/starship"
-  # - "wezfurlong/wezterm-nightly"
+  - "wezfurlong/wezterm-nightly"
 
 flatpak_packages:
   - "md.obsidian.Obsidian"
@@ -48,7 +48,7 @@ pnpm_global_packages:
 
 system_packages:
   - "age"
-  - "akmod-nvidia"
+  # - "akmod-nvidia"
   - "brave-browser"
   - "codium"
   - "easyeffects"
@@ -62,17 +62,18 @@ system_packages:
   - "kitty"
   - "libva-utils"
   - "mpv"
-  - "nvidia-vaapi-driver"
+  # - "nvidia-vaapi-driver"
+  - "podman"
   - "qbittorrent"
   - "starship"
   - "unrar"
   - "unzip"
-  - "vdpauinfo"
-  - "vulkan"
-  # - "wezterm"
-  - "xorg-x11-drv-nvidia-cuda"
-  - "xorg-x11-drv-nvidia-cuda-libs"
-  - "xorg-x11-drv-nvidia-power"
+  # - "vdpauinfo"
+  # - "vulkan"
+  - "wezterm"
+  # - "xorg-x11-drv-nvidia-cuda"
+  # - "xorg-x11-drv-nvidia-cuda-libs"
+  # - "xorg-x11-drv-nvidia-power"
 
 third_party_repos:
   - name: "brave-browser"
