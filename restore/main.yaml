@@ -4,218 +4,235 @@
   vars_files:
     - "../vars.yaml"
   tasks:
-    # - name: "set up dnf configuration"
-    #   ansible.builtin.lineinfile:
-    #     path: "/etc/dnf/dnf.conf"
-    #     regexp: '^{{ item.key }}='
-    #     line: "{{ item.key }}={{ item.value }}"
-    #   become: true
-    #   loop:
-    #     - { key: "max_parallel_downloads", value: 20 }
-    #     - { key: "deltarpm", value: true }
+    - name: "set up dnf configuration"
+      ansible.builtin.lineinfile:
+        path: "/etc/dnf/dnf.conf"
+        regexp: '^{{ item.key }}='
+        line: "{{ item.key }}={{ item.value }}"
+      become: true
+      loop:
+        - { key: "max_parallel_downloads", value: 20 }
+        - { key: "deltarpm", value: true }
 
-    # - name: "upgrade system packages"
-    #   ansible.builtin.dnf:
-    #     name: "*"
-    #     state: "latest"
-    #   become: true
+    - name: "upgrade system packages"
+      ansible.builtin.dnf:
+        name: "*"
+        state: "latest"
+      become: true
 
-    # - name: "install dnf-plugins-core(rpmfusion)"
-    #   ansible.builtin.dnf:
-    #     name: "dnf-plugins-core"
-    #     state: "latest"
-    #   become: true
+    - name: "install dnf-plugins-core(rpmfusion)"
+      ansible.builtin.dnf:
+        name: "dnf-plugins-core"
+        state: "latest"
+      become: true
 
-    # - name: "enable the free/non-free rpmfusion repositories"
-    #   ansible.builtin.dnf:
-    #     name:
-    #       - "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-{{
-    #         ansible_distribution_major_version }}.noarch.rpm"
-    #       - "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-{{
-    #         ansible_distribution_major_version }}.noarch.rpm"
-    #     state: "latest"
-    #     disable_gpg_check: true
-    #   become: true
+    - name: "enable the free/non-free rpmfusion repositories"
+      ansible.builtin.dnf:
+        name:
+          - "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-{{
+            ansible_distribution_major_version }}.noarch.rpm"
+          - "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-{{
+            ansible_distribution_major_version }}.noarch.rpm"
+        state: "latest"
+        disable_gpg_check: true
+      become: true
 
-    # - name: "enable openh264 repository(rpmfusion)"
-    #   ansible.builtin.command: "dnf config-manager --enable fedora-cisco-openh264 -y"
-    #   become: true
+    - name: "enable openh264 repository(rpmfusion)"
+      ansible.builtin.command: "dnf config-manager --enable fedora-cisco-openh264 -y"
+      become: true
 
-    # - name: "install appstream-data(rpmfusion)"
-    #   ansible.builtin.command: "dnf groupupdate core -y"
-    #   become: true
+    - name: "install appstream-data(rpmfusion)"
+      ansible.builtin.command: "dnf groupupdate core -y"
+      become: true
 
-    # - name: "switch to ffmpeg-free(rpmfusion)"
-    #   ansible.builtin.command: "dnf swap ffmpeg-free ffmpeg --allowerasing -y"
-    #   become: true
+    - name: "switch to ffmpeg-free(rpmfusion)"
+      ansible.builtin.command: "dnf swap ffmpeg-free ffmpeg --allowerasing -y"
+      become: true
 
-    # - name: "install media codecs(rpmfusion) #1"
-    #   ansible.builtin.command: "dnf groupupdate multimedia --setop=\"install_weak_deps=False\" --exclude=PackageKit-gstreamer-plugin -y"
-    #   become: true
+    - name: "install media codecs(rpmfusion) #1"
+      ansible.builtin.command: "dnf groupupdate multimedia --setop=\"install_weak_deps=False\" --exclude=PackageKit-gstreamer-plugin -y"
+      become: true
 
-    # - name: "install media codecs(rpmfusion) #2"
-    #   ansible.builtin.command: "dnf groupupdate sound-and-video -y"
-    #   become: true
+    - name: "install media codecs(rpmfusion) #2"
+      ansible.builtin.command: "dnf groupupdate sound-and-video -y"
+      become: true
 
-    # - name: "enable third party repos"
-    #   ansible.builtin.yum_repository:
-    #     name: "{{ item.name }}"
-    #     description: "{{ item.description }}"
-    #     baseurl: "{{ item.baseurl }}"
-    #     enabled: "{{ item.enabled }}"
-    #     gpgcheck: "{{ item.gpgcheck }}"
-    #     gpgkey: "{{ item.gpgkey }}"
-    #   become: true
-    #   loop: "{{ third_party_repos }}"
+    - name: "enable third party repos"
+      ansible.builtin.yum_repository:
+        name: "{{ item.name }}"
+        description: "{{ item.description }}"
+        baseurl: "{{ item.baseurl }}"
+        enabled: "{{ item.enabled }}"
+        gpgcheck: "{{ item.gpgcheck }}"
+        gpgkey: "{{ item.gpgkey }}"
+      become: true
+      loop: "{{ third_party_repos }}"
 
-    # - name: "enable copr repos"
-    #   become: true
-    #   community.general.copr:
-    #     name: "{{ item }}"
-    #     state: "enabled"
-    #   loop: "{{ copr_repos }}"
+    - name: "enable copr repos"
+      become: true
+      community.general.copr:
+        name: "{{ item }}"
+        state: "enabled"
+      loop: "{{ copr_repos }}"
 
-    # - name: "install dnf packages"
-    #   ansible.builtin.dnf:
-    #     name: "{{ item }}"
-    #     state: "latest"
-    #   become: true
-    #   loop: "{{ system_packages }}"
+    - name: "install dnf packages"
+      ansible.builtin.dnf:
+        name: "{{ item }}"
+        state: "latest"
+      become: true
+      loop: "{{ system_packages }}"
 
-    # - name: "remove fedora flatpak repos"
-    #   community.general.flatpak_remote:
-    #     name:
-    #       - "fedora"
-    #       - "fedora-testing"
-    #     state: "absent"
+    - name: "remove fedora flatpak repos"
+      community.general.flatpak_remote:
+        name:
+          - "fedora"
+          - "fedora-testing"
+        state: "absent"
 
-    # - name: "set up flathub as the primary flatpak repo"
-    #   community.general.flatpak_remote:
-    #     enabled: true
-    #     flatpakrepo_url: "https://dl.flathub.org/repo/flathub.flatpakrepo"
-    #     name: "flathub"
-    #     state: "present"
+    - name: "set up flathub as the primary flatpak repo"
+      community.general.flatpak_remote:
+        enabled: true
+        flatpakrepo_url: "https://dl.flathub.org/repo/flathub.flatpakrepo"
+        name: "flathub"
+        state: "present"
 
-    # - name: "install flatpak packages"
-    #   community.general.flatpak:
-    #     name: "{{ item }}"
-    #     state: "present"
-    #   loop: "{{ flatpak_packages }}"
+    - name: "install flatpak packages"
+      community.general.flatpak:
+        name: "{{ item }}"
+        state: "present"
+      loop: "{{ flatpak_packages }}"
 
-    # - name: "restore backup archives"
-    #   include_tasks: "./restore_backup_archives.yaml"
-    #   loop: "{{ backup_archives }}"
+    - name: "restore backup archives"
+      include_tasks: "./restore_backup_archives.yaml"
+      loop: "{{ backup_archives }}"
 
-    # - name: "set up nvidia power config"
-    #   ansible.builtin.command: "systemctl enable nvidia-{suspend,resume,hibernate}"
-    #   become: true
-    #   ignore_errors: true
+    - name: "set up nvidia power config"
+      ansible.builtin.command: "systemctl enable nvidia-{suspend,resume,hibernate}"
+      become: true
+      ignore_errors: true
 
-    # - name: "check if rust is already installed"
-    #   ansible.builtin.command: "command -v rustup"
-    #   ignore_errors: true
-    #   register: rust_exists
+    - name: "check if rust is already installed"
+      ansible.builtin.command: "command -v rustup"
+      ignore_errors: true
+      register: rust_exists
 
-    # - name: "download rust automated installation script"
-    #   when: rust_exists.failed
-    #   ansible.builtin.get_url:
-    #     dest: "/tmp/rustup_init.sh"
-    #     force: true
-    #     mode: "u=rwx,g=r,o=r"
-    #     url: "https://sh.rustup.rs"
+    - name: "download rust automated installation script"
+      when: rust_exists.failed
+      ansible.builtin.get_url:
+        dest: "/tmp/rustup_init.sh"
+        force: true
+        mode: "u=rwx,g=r,o=r"
+        url: "https://sh.rustup.rs"
 
-    # - name: "install rust"
-    #   when: rust_exists.failed
-    #   ansible.builtin.command: "/tmp/rustup_init.sh -y"
+    - name: "install rust"
+      when: rust_exists.failed
+      ansible.builtin.command: "/tmp/rustup_init.sh -y"
 
-    # - name: "check if rust-analyzer is already installed"
-    #   ansible.builtin.command: "command -v rust-analyzer"
-    #   register: rust_analyzer_exists
-    #   ignore_errors: true
+    - name: "check if rust-analyzer is already installed"
+      ansible.builtin.command: "command -v rust-analyzer"
+      register: rust_analyzer_exists
+      ignore_errors: true
 
-    # - name: "install rust-analyzer(required by helix)"
-    #   when: rust_analyzer_exists.failed
-    #   ansible.builtin.command: "rustup component add rust-analyzer"
+    - name: "install rust-analyzer(required by helix)"
+      when: rust_analyzer_exists.failed
+      ansible.builtin.command: "rustup component add rust-analyzer"
+
+    - name: "check if fnm is already installed"
+      ansible.builtin.command: "command -v fnm"
+      register: fnm_exists
+      ignore_errors: true
+
+    - name: "download fnm automated installation script"
+      ansible.builtin.get_url:
+        dest: "/tmp/fnm_install.sh"
+        force: true
+        mode: "u=rwx,g=r,o=r"
+        url: https://fnm.vercel.app/install
+      when: fnm_exists.failed
+
+    - name: "install fnm"
+      ansible.builtin.command: /tmp/fnm_install.sh
+      when: fnm_exists.failed
     
-    # - name: "check if pnpm is already installed"
-    #   ansible.builtin.command: "command -v pnpm"
-    #   register: pnpm_exists
-    #   ignore_errors: true
+    - name: "check if pnpm is already installed"
+      ansible.builtin.command: "command -v pnpm"
+      register: pnpm_exists
+      ignore_errors: true
 
-    # - name: "download pnpm automated installation script"
-    #   ansible.builtin.get_url:
-    #     dest: "/tmp/pnpm_install.sh"
-    #     force: true
-    #     mode: "u=rwx,g=r,o=r"
-    #     url: "https://get.pnpm.io/install.sh"
-    #   when: pnpm_exists.failed
+    - name: "download pnpm automated installation script"
+      ansible.builtin.get_url:
+        dest: "/tmp/pnpm_install.sh"
+        force: true
+        mode: "u=rwx,g=r,o=r"
+        url: "https://get.pnpm.io/install.sh"
+      when: pnpm_exists.failed
 
-    # - name: "install pnpm"
-    #   when: pnpm_exists.failed
-    #   ansible.builtin.command: /tmp/pnpm_install.sh -y
+    - name: "install pnpm"
+      when: pnpm_exists.failed
+      ansible.builtin.command: /tmp/pnpm_install.sh -y
 
-    # - name: "source the PATH"
-    #   when: pnpm_exists.failed
-    #   ansible.builtin.command: |
-    #     source {{ ansible_env.HOME }}/.bashrc
-    #     source {{ ansible_env.HOME }}/.bash_profile
+    - name: "source the PATH"
+      when: pnpm_exists.failed
+      ansible.builtin.command: |
+        source {{ ansible_env.HOME }}/.bashrc
+        source {{ ansible_env.HOME }}/.bash_profile
 
-    # - name: "check if node.js is already installed"
-    #   ansible.builtin.command: "command -v node"
-    #   register: nodejs_exists
-    #   ignore_errors: true
+    - name: "check if node.js is already installed"
+      ansible.builtin.command: "command -v node"
+      register: nodejs_exists
+      ignore_errors: true
 
-    # - name: "install latest lts version of node.js"
-    #   ansible.builtin.command: "pnpm env use --global lts"
-    #   when: nodejs_exists.failed
+    - name: "install latest lts version of node.js"
+      ansible.builtin.command: "pnpm env use --global lts"
+      when: nodejs_exists.failed
 
-    # - name: "install global pnpm packages(required by helix)"
-    #   community.general.pnpm:
-    #     name: "{{ item }}"
-    #     global: true
-    #     state: "latest"
-    #   loop: "{{ pnpm_global_packages }}"
+    - name: "install global pnpm packages(required by helix)"
+      community.general.pnpm:
+        name: "{{ item }}"
+        global: true
+        state: "latest"
+      loop: "{{ pnpm_global_packages }}"
 
-    # - name: "check if chezmoi is already installed"
-    #   ansible.builtin.command: "command -v chezmoi"
-    #   register: chezmoi_exists
-    #   ignore_errors: true
+    - name: "check if chezmoi is already installed"
+      ansible.builtin.command: "command -v chezmoi"
+      register: chezmoi_exists
+      ignore_errors: true
 
-    # - name: "download chezmoi automated installation script"
-    #   when: chezmoi_exists.failed
-    #   ansible.builtin.get_url:
-    #     dest: "/tmp/chezmoi_install.sh"
-    #     force: true
-    #     mode: "u=rwx,g=r,o=r"
-    #     url: "https://get.chezmoi.io/lb"
+    - name: "download chezmoi automated installation script"
+      when: chezmoi_exists.failed
+      ansible.builtin.get_url:
+        dest: "/tmp/chezmoi_install.sh"
+        force: true
+        mode: "u=rwx,g=r,o=r"
+        url: "https://get.chezmoi.io/lb"
 
-    # - name: "run chezmoi automated installation script"
-    #   ansible.builtin.command: "/tmp/chezmoi_install.sh"
-    #   args: 
-    #     chdir: "{{ ansible_env.HOME }}/"
-    #   when: chezmoi_exists.failed
+    - name: "run chezmoi automated installation script"
+      ansible.builtin.command: "/tmp/chezmoi_install.sh"
+      args: 
+        chdir: "{{ ansible_env.HOME }}/"
+      when: chezmoi_exists.failed
 
-    # - name: "check if nix is already installed"
-    #   ansible.builtin.command: "command -v nix"
-    #   ignore_errors: true
-    #   register: nix_exists
+    - name: "check if nix is already installed"
+      ansible.builtin.command: "command -v nix"
+      ignore_errors: true
+      register: nix_exists
 
-    # - name: "download nix automated installation script"
-    #   ansible.builtin.get_url:
-    #     force: true
-    #     dest: "/tmp/nix_init.sh"
-    #     mode: "u=rwx,g=r,o=r"
-    #     url: "https://nixos.org/nix/install"
-    #   when: nix_exists.failed
+    - name: "download nix automated installation script"
+      ansible.builtin.get_url:
+        force: true
+        dest: "/tmp/nix_init.sh"
+        mode: "u=rwx,g=r,o=r"
+        url: "https://nixos.org/nix/install"
+      when: nix_exists.failed
 
-    # - name: "install nix"
-    #   ansible.builtin.command: "sh /tmp/nix_init.sh --no-daemon"
-    #   when: nix_exists.failed      
+    - name: "install nix"
+      ansible.builtin.command: "sh /tmp/nix_init.sh --no-daemon"
+      when: nix_exists.failed      
 
-    # - name: "check if jetbrains mono nerd font is already installed"
-    #   ansible.builtin.stat:
-    #     path: "{{ ansible_env.HOME }}/.local/share/fonts/JetBrainsMonoNerdFont-Regular.ttf"
-    #   register: jetbrainsmono_nerd_font_regular_file
+    - name: "check if jetbrains mono nerd font is already installed"
+      ansible.builtin.stat:
+        path: "{{ ansible_env.HOME }}/.local/share/fonts/JetBrainsMonoNerdFont-Regular.ttf"
+      register: jetbrainsmono_nerd_font_regular_file
 
     - name: "creates the fonts directory"
       ansible.builtin.file:
@@ -229,85 +246,85 @@
         remote_src: true
         src: "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip"
       mode: "u=rw,g=r,o=r"
-      # when: not jetbrainsmono_nerd_font_regular_file.stat.exists
+      when: not jetbrainsmono_nerd_font_regular_file.stat.exists
 
     - name: "build font cache"
-      # when: not jetbrainsmono_nerd_font_regular_file.stat.exists
+      when: not jetbrainsmono_nerd_font_regular_file.stat.exists
       ansible.builtin.command: "fc-cache {{ ansible_env.HOME }}/.local/share/fonts"
 
-    # - name: "check if goimports(golang imports formatter) is already installed"
-    #   ansible.builtin.command: "command -v goimports"
-    #   register: goimports_exists
-    #   ignore_errors: true
+    - name: "check if goimports(golang imports formatter) is already installed"
+      ansible.builtin.command: "command -v goimports"
+      register: goimports_exists
+      ignore_errors: true
       
-    # - name: "install goimports(required by helix)"
-    #   ansible.builtin.command: "go install golang.org/x/tools/cmd/goimports@latest"
-    #   when: goimports_exists.failed
+    - name: "install goimports(required by helix)"
+      ansible.builtin.command: "go install golang.org/x/tools/cmd/goimports@latest"
+      when: goimports_exists.failed
 
-    # - name: "check if dlv(golang debugger) is already installed"
-    #   ansible.builtin.command: "command -v dlv"
-    #   register: dlv_exists
-    #   ignore_errors: true
+    - name: "check if dlv(golang debugger) is already installed"
+      ansible.builtin.command: "command -v dlv"
+      register: dlv_exists
+      ignore_errors: true
       
-    # - name: "install dlv(required by helix)"
-    #   ansible.builtin.command: "go install github.com/go-delve/delve/cmd/dlv@latest"
-    #   when: dlv_exists.failed
+    - name: "install dlv(required by helix)"
+      ansible.builtin.command: "go install github.com/go-delve/delve/cmd/dlv@latest"
+      when: dlv_exists.failed
 
-    # - name: "check if gopls(golang lsp) is already installed"
-    #   ansible.builtin.command: "command -v gopls"
-    #   ignore_errors: true
-    #   register: gopls_exists
+    - name: "check if gopls(golang lsp) is already installed"
+      ansible.builtin.command: "command -v gopls"
+      ignore_errors: true
+      register: gopls_exists
       
-    # - name: "install gopls(required by helix)"
-    #   ansible.builtin.command: "go install golang.org/x/tools/gopls@latest"
-    #   when: gopls_exists.failed
+    - name: "install gopls(required by helix)"
+      ansible.builtin.command: "go install golang.org/x/tools/gopls@latest"
+      when: gopls_exists.failed
 
-    # - name: "install marksman(markdown lsp, required by helix)"
-    #   ansible.builtin.get_url:
-    #     dest: "{{ ansible_env.HOME }}/.local/bin/marksman"
-    #     mode: "u=rwx,g=rx,o=rx"
-    #     url: "https://github.com/artempyanykh/marksman/releases/latest/download/marksman-linux-x64"
+    - name: "install marksman(markdown lsp, required by helix)"
+      ansible.builtin.get_url:
+        dest: "{{ ansible_env.HOME }}/.local/bin/marksman"
+        mode: "u=rwx,g=rx,o=rx"
+        url: "https://github.com/artempyanykh/marksman/releases/latest/download/marksman-linux-x64"
 
-    # - name: "check if ytarchive is already installed"
-    #   ansible.builtin.command: "command -v ytarchive"
-    #   ignore_errors: true
-    #   register: ytarchive_exists
+    - name: "check if ytarchive is already installed"
+      ansible.builtin.command: "command -v ytarchive"
+      ignore_errors: true
+      register: ytarchive_exists
 
-    # - name: "install ytarchive"
-    #   ansible.builtin.command: "go install github.com/Kethsar/ytarchive@dev"
-    #   when: ytarchive_exists.failed
+    - name: "install ytarchive"
+      ansible.builtin.command: "go install github.com/Kethsar/ytarchive@dev"
+      when: ytarchive_exists.failed
 
-    # - name: "creates the gtk-2.0 directory(xdg-ninja solution)"
-    #   ansible.builtin.file:
-    #     mode: "u=rwx,g=rx,o=rx"
-    #     path: "{{ ansible_env.HOME }}/.config/gtk-2.0"
-    #     state: "directory"
+    - name: "creates the gtk-2.0 directory(xdg-ninja solution)"
+      ansible.builtin.file:
+        mode: "u=rwx,g=rx,o=rx"
+        path: "{{ ansible_env.HOME }}/.config/gtk-2.0"
+        state: "directory"
         
-    # - name: "creates the python directory(xdg-ninja solution)"
-    #   ansible.builtin.file:
-    #     mode: "u=rwx,g=rx,o=rx"
-    #     path: "/etc/python"
-    #     state: "directory"
+    - name: "creates the python directory(xdg-ninja solution)"
+      ansible.builtin.file:
+        mode: "u=rwx,g=rx,o=rx"
+        path: "/etc/python"
+        state: "directory"
 
-    # - name: "copy pythonrc file to python directory(xdg-ninja solution)"
-    #   become: true
-    #   ansible.builtin.copy: 
-    #     dest: "/etc/python/pythonrc"
-    #     mode: "u=rw,g=r,o=r"
-    #     src: "{{ playbook_dir }}/pythonrc"
+    - name: "copy pythonrc file to python directory(xdg-ninja solution)"
+      become: true
+      ansible.builtin.copy: 
+        dest: "/etc/python/pythonrc"
+        mode: "u=rw,g=r,o=r"
+        src: "{{ playbook_dir }}/pythonrc"
 
-    # - name: "create bash history directory(xdg-ninja solution)"
-    #   ansible.builtin.file:
-    #     mode: "u=rwx,g=rx,o=rx"
-    #     path: "{{ ansible_env.HOME }}/.local/state/bash"
-    #     state: "directory"
+    - name: "create bash history directory(xdg-ninja solution)"
+      ansible.builtin.file:
+        mode: "u=rwx,g=rx,o=rx"
+        path: "{{ ansible_env.HOME }}/.local/state/bash"
+        state: "directory"
 
-    # - name: "wait for nvidia kmod module to be built"
-    #   ansible.builtin.command: "modinfo -F version nvidia"
-    #   register: nvidia_driver_version
-    #   until: nvidia_driver_version.stdout | regex_search('\\d+\\.\\d+\\.\\d+')
-    #   retries: 9999999
-    #   delay: 5
+    - name: "wait for nvidia kmod module to be built"
+      ansible.builtin.command: "modinfo -F version nvidia"
+      register: nvidia_driver_version
+      until: nvidia_driver_version.stdout | regex_search('\\d+\\.\\d+\\.\\d+')
+      retries: 9999999
+      delay: 5
     
-    # - debug:
-    #     msg: "nvidia kmod module built, driver version: {{ nvidia_driver_version.stdout }}"
+    - debug:
+        msg: "nvidia kmod module built, driver version: {{ nvidia_driver_version.stdout }}"
