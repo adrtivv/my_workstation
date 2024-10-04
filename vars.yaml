@@ -39,16 +39,14 @@ flatpak_packages:
 
 pnpm_global_packages:
   - "@ansible/ansible-language-server"
+  - "@biomejs/biome"
   - "@microsoft/compose-language-service"
   - "@tailwindcss/language-server"
   - "bash-language-server"
-  - "@biomejs/biome"
-  - "graphql-language-service-server"
+  - "graphql-language-service-cli"
   - "typescript"
   - "typescript-language-server"
-  - "vscode-css-languageservice"
-  - "vscode-html-languageservice"
-  - "vscode-json-languageservice"
+  - "vscode-langservers-extracted"
   - "yaml-language-server"
 
 system_packages:
